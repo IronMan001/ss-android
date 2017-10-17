@@ -8,6 +8,10 @@
     <item
         android:id="@+id/menu_item_toggle_global"
         android:title="@string/menu_item_toggle_global"></item>
+
+    <item android:id="@+id/menu_item_refresh"
+        android:title="@string/refresh_btn"></item>
+
     <item
         android:id="@+id/menu_item_about"
         android:title="@string/menu_item_about"></item>

@@ -27,6 +27,30 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/ProxyUrlShow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:tag="ProxyUrlshow"
+        android:padding="13dp">
+
+        <TextView
+            android:id="@+id/textViewProxyUrlTitleshow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/config_url_get"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:id="@+id/textViewProxyUrlshow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/config_not_set_value"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </LinearLayout>
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dp"

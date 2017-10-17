@@ -26,15 +26,27 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 import com.vm.shadowsocks.R;
+import com.vm.shadowsocks.bean.VpnInfoBean;
+import com.vm.shadowsocks.constant.MsgConstant;
 import com.vm.shadowsocks.core.AppInfo;
 import com.vm.shadowsocks.core.AppProxyManager;
 import com.vm.shadowsocks.core.LocalVpnService;
 import com.vm.shadowsocks.core.ProxyConfig;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.lang.Integer;
 
 public class MainActivity extends Activity implements
         View.OnClickListener,
@@ -52,7 +64,7 @@ public class MainActivity extends Activity implements
     private Switch switchProxy;
     private TextView textViewLog;
     private ScrollView scrollViewLog;
-    private TextView textViewProxyUrl, textViewProxyApp;
+    private TextView textViewProxyUrl, textViewProxyApp,textViewProxyUrlshow;
     private Calendar mCalendar;
 
     @Override
@@ -63,9 +75,11 @@ public class MainActivity extends Activity implements
         scrollViewLog = (ScrollView) findViewById(R.id.scrollViewLog);
         textViewLog = (TextView) findViewById(R.id.textViewLog);
         findViewById(R.id.ProxyUrlLayout).setOnClickListener(this);
+        findViewById(R.id.ProxyUrlShow).setOnClickListener(this);
         findViewById(R.id.AppSelectLayout).setOnClickListener(this);
 
         textViewProxyUrl = (TextView) findViewById(R.id.textViewProxyUrl);
+        textViewProxyUrlshow = (TextView) findViewById(R.id.textViewProxyUrlshow);
         String ProxyUrl = readProxyUrl();
         if (TextUtils.isEmpty(ProxyUrl)) {
             textViewProxyUrl.setText(R.string.config_not_set_value);
@@ -80,7 +94,7 @@ public class MainActivity extends Activity implements
         LocalVpnService.addOnStatusChangedListener(this);
 
         //Pre-App Proxy
-        if (AppProxyManager.isLollipopOrAbove){
+        if (AppProxyManager.isLollipopOrAbove) {
             new AppProxyManager(this);
             textViewProxyApp = (TextView) findViewById(R.id.textViewAppSelectDetail);
         } else {
@@ -142,7 +156,7 @@ public class MainActivity extends Activity implements
             return;
         }
 
-        if (v.getTag().toString().equals("ProxyUrl")){
+        if (v.getTag().toString().equals("ProxyUrl")) {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.config_url)
                     .setItems(new CharSequence[]{
@@ -162,9 +176,19 @@ public class MainActivity extends Activity implements
                         }
                     })
                     .show();
-        } else if (v.getTag().toString().equals("AppSelect")){
+        } else if (v.getTag().toString().equals("AppSelect")) {
             System.out.println("abc");
             startActivity(new Intent(this, AppManager.class));
+        } else if (v.getTag().toString().equals("ProxyUrlshow")){
+            System.out.println("radom");
+            if(info.size()==0){
+                Toast.makeText(this, "请先获取IP", Toast.LENGTH_SHORT).show();
+            }else{
+                int radom=(int)Math.floor(Math.random()*(info.size()));
+                VpnInfoBean vpnb=info.get(radom);
+                String show="Account:"+vpnb.getIpadd()+",\n密码:"+vpnb.getPassword()+",端口:"+vpnb.getPort()+",\n加密方式:"+vpnb.getSalt_pwd_type()+",国家地区:"+vpnb.getLocation()+",\n连接健康度:"+vpnb.getHealthe()+",时间:"+vpnb.getCurrt_time();
+                textViewProxyUrlshow.setText(show);
+            }
         }
     }
 
@@ -357,6 +381,11 @@ public class MainActivity extends Activity implements
                         .show();
 
                 return true;
+            case R.id.menu_item_refresh:
+                request_count_failed=0;
+                String url= MsgConstant.URL1 + System.currentTimeMillis();
+                createNETRequest(url);
+                return true;
             case R.id.menu_item_toggle_global:
                 ProxyConfig.Instance.globalMode = !ProxyConfig.Instance.globalMode;
                 if (ProxyConfig.Instance.globalMode) {
@@ -387,6 +416,72 @@ public class MainActivity extends Activity implements
     protected void onDestroy() {
         LocalVpnService.removeOnStatusChangedListener(this);
         super.onDestroy();
+    }
+
+    ArrayList<VpnInfoBean> info = new ArrayList<VpnInfoBean>();
+
+    //请求循环次数
+    private int request_count_failed=0;
+    /**
+     * 发起网络请求操作
+     */
+    protected  void createNETRequest(String url){
+        info.clear();
+        String result="";
+
+//        try {
+//            result = NetUtils.getStringFromServer(url);
+//        } catch (IOException e) {
+//            //e.printStackTrace();
+//            Log.e("networkErr",e.getMessage());
+//        }
+
+        Request request = new Request.Builder().url(url).build();
+       NetUtils.enqueue(request, new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
+                if (e.getCause().equals(SocketTimeoutException.class)){
+                   if( request_count_failed>5){
+                       return; //停止网络请求
+                   }
+                    String url2=MsgConstant.URL2 + System.currentTimeMillis();
+//                    NetUtils.getInstance().enqueue(request,url2);
+                    createNETRequest(url2);
+                    request_count_failed++;
+                }
+
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    final String responseUrl = response.body().string();
+//                    return responseUrl;
+//                    Log.d("info",responseUrl);
+//                    Toast.makeText(getApplicationContext(),responseUrl,Toast.LENGTH_SHORT).show();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            onLogReceived(responseUrl);
+                        }
+                    });
+
+                    JSONObject jsonObject=JSON.parseObject(responseUrl);
+                    JSONArray jsonarr=jsonObject.getJSONArray("data");
+//                    JSONArray jsonarr=JSONArray.parseArray(responseUrl);
+
+                    for(int i=0;i<jsonarr.size();i++){
+                        JSONArray arr=(JSONArray)jsonarr.get(i);
+                        String zero=arr.get(0).toString();
+                        int first=Integer.valueOf(zero).intValue();
+                        VpnInfoBean vpn = new VpnInfoBean(first,arr.get(1).toString(),arr.get(2).toString(),arr.get(3).toString(),arr.get(4).toString(),arr.get(5).toString(),arr.get(6).toString());
+                        info.add(vpn);
+                    }
+                }
+
+            }
+        });
     }
 
 }
