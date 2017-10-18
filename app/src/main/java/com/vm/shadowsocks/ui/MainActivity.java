@@ -184,12 +184,28 @@ public class MainActivity extends Activity implements
             if(info.size()==0){
                 Toast.makeText(this, "请先获取IP", Toast.LENGTH_SHORT).show();
             }else{
-                int radom=(int)Math.floor(Math.random()*(info.size()));
-                VpnInfoBean vpnb=info.get(radom);
+                VpnInfoBean vpnb = getRandom();
+                while (vpnb.getPassword().contains("@")) {
+                    vpnb = getRandom();
+                }
                 String show="Account:"+vpnb.getIpadd()+",\n密码:"+vpnb.getPassword()+",端口:"+vpnb.getPort()+",\n加密方式:"+vpnb.getSalt_pwd_type()+",国家地区:"+vpnb.getLocation()+",\n连接健康度:"+vpnb.getHealthe()+",时间:"+vpnb.getCurrt_time();
                 textViewProxyUrlshow.setText(show);
+                //ss://method:password@host:port
+                String url = "ss://" + vpnb.getSalt_pwd_type() + ":" + vpnb.getPassword() + "@" + vpnb.getIpadd() + ":" + vpnb.getPort();
+                setProxyUrl(url);
+                textViewProxyUrl.setText(url);
             }
         }
+    }
+
+    /**
+     * 随机获取bean
+     *
+     * @return
+     */
+    private VpnInfoBean getRandom() {
+        int radom = (int) Math.floor(Math.random() * (info.size()));
+        return info.get(radom);
     }
 
     private void scanForProxyUrl() {
@@ -429,15 +445,8 @@ public class MainActivity extends Activity implements
         info.clear();
         String result="";
 
-//        try {
-//            result = NetUtils.getStringFromServer(url);
-//        } catch (IOException e) {
-//            //e.printStackTrace();
-//            Log.e("networkErr",e.getMessage());
-//        }
-
         Request request = new Request.Builder().url(url).build();
-       NetUtils.enqueue(request, new Callback() {
+        NetUtils.enqueue(request, new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
                 Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
@@ -457,9 +466,6 @@ public class MainActivity extends Activity implements
             public void onResponse(Response response) throws IOException {
                 if (response.isSuccessful()) {
                     final String responseUrl = response.body().string();
-//                    return responseUrl;
-//                    Log.d("info",responseUrl);
-//                    Toast.makeText(getApplicationContext(),responseUrl,Toast.LENGTH_SHORT).show();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -469,7 +475,6 @@ public class MainActivity extends Activity implements
 
                     JSONObject jsonObject=JSON.parseObject(responseUrl);
                     JSONArray jsonarr=jsonObject.getJSONArray("data");
-//                    JSONArray jsonarr=JSONArray.parseArray(responseUrl);
 
                     for(int i=0;i<jsonarr.size();i++){
                         JSONArray arr=(JSONArray)jsonarr.get(i);
@@ -479,7 +484,6 @@ public class MainActivity extends Activity implements
                         info.add(vpn);
                     }
                 }
-
             }
         });
     }
