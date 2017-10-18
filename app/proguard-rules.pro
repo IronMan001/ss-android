@@ -17,3 +17,9 @@
 #}
 -keep class com.journeyapps.barcodescanner.** { *; }
 -dontwarn org.bouncycastle.**
+
+#忽略警告
+-ignorewarnings
+-keep class javax.ws.rs.** { *; }
+-dontwarn com.alibaba.fastjson.**
+-keep class com.alibaba.fastjson.** { *; }
