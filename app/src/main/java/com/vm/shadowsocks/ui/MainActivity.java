@@ -58,6 +58,7 @@ public class MainActivity extends Activity implements
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static final String CONFIG_URL_KEY = "CONFIG_URL_KEY";
+    private static final String CONFIG_URL_KEY_SHOW = "CONFIG_URL_KEY_SHOW";
 
     private static final int START_VPN_SERVICE_REQUEST_CODE = 1985;
 
@@ -85,6 +86,8 @@ public class MainActivity extends Activity implements
             textViewProxyUrl.setText(R.string.config_not_set_value);
         } else {
             textViewProxyUrl.setText(ProxyUrl);
+            String proxyUrl_show = readProxyUrlShow();
+            textViewProxyUrlshow.setText(proxyUrl_show);
         }
 
         textViewLog.setText(GL_HISTORY_LOGS);
@@ -106,6 +109,28 @@ public class MainActivity extends Activity implements
     String readProxyUrl() {
         SharedPreferences preferences = getSharedPreferences("shadowsocksProxyUrl", MODE_PRIVATE);
         return preferences.getString(CONFIG_URL_KEY, "");
+    }
+
+    /**
+     * 读取 人类可读
+     *
+     * @return
+     */
+    String readProxyUrlShow() {
+        SharedPreferences preferences = getSharedPreferences("shadowsocksProxyUrlshow", MODE_PRIVATE);
+        return preferences.getString(CONFIG_URL_KEY_SHOW, "None");
+    }
+
+    /**
+     * 保存 人类可读
+     *
+     * @param proxyUrlshow
+     */
+    void setProxyUrlShow(String proxyUrlshow) {
+        SharedPreferences preferences = getSharedPreferences("shadowsocksProxyUrlshow", MODE_PRIVATE);
+        Editor editor = preferences.edit();
+        editor.putString(CONFIG_URL_KEY_SHOW, proxyUrlshow);
+        editor.apply();
     }
 
     void setProxyUrl(String ProxyUrl) {
@@ -190,6 +215,7 @@ public class MainActivity extends Activity implements
                 }
                 String show="Account:"+vpnb.getIpadd()+",\n密码:"+vpnb.getPassword()+",端口:"+vpnb.getPort()+",\n加密方式:"+vpnb.getSalt_pwd_type()+",国家地区:"+vpnb.getLocation()+",\n连接健康度:"+vpnb.getHealthe()+",时间:"+vpnb.getCurrt_time();
                 textViewProxyUrlshow.setText(show);
+                setProxyUrlShow(show);
                 //ss://method:password@host:port
                 String url = "ss://" + vpnb.getSalt_pwd_type() + ":" + vpnb.getPassword() + "@" + vpnb.getIpadd() + ":" + vpnb.getPort();
                 setProxyUrl(url);
