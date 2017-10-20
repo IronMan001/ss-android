@@ -19,7 +19,14 @@
 -dontwarn org.bouncycastle.**
 
 #忽略警告
--ignorewarnings
--keep class javax.ws.rs.** { *; }
+#-ignorewarnings
+#-keep class javax.ws.rs.** { *; }
+-keepattributes Signature
 -dontwarn com.alibaba.fastjson.**
 -keep class com.alibaba.fastjson.** { *; }
+
+#okhttp混淆配置
+#-keepattributes Signature
+-keep class com.squareup.okhttp.** { *;}
+-dontwarn com.squareup.okhttp.**
+-dontwarn okio.**

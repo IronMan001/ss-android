@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class NetUtils {
     private static final OkHttpClient mOkHttpClient = new OkHttpClient();
     static{
-        mOkHttpClient.setConnectTimeout(10, TimeUnit.SECONDS);
+        mOkHttpClient.setConnectTimeout(5, TimeUnit.SECONDS);
     }
     public static OkHttpClient getInstance(){
         return mOkHttpClient;
@@ -31,6 +31,10 @@ public class NetUtils {
      * @throws IOException
      */
     public static Response execute(Request request) throws IOException{
+//        OkHttpClient okHttpClient_temp=new OkHttpClient();
+//        okHttpClient_temp.setConnectTimeout(5,TimeUnit.SECONDS);
+        mOkHttpClient.setReadTimeout(5,TimeUnit.SECONDS);
+        mOkHttpClient.setWriteTimeout(5,TimeUnit.SECONDS);
         return mOkHttpClient.newCall(request).execute();
     }
     /**

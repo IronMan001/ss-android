@@ -11,6 +11,8 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
@@ -46,7 +48,6 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.lang.Integer;
 
 public class MainActivity extends Activity implements
         View.OnClickListener,
@@ -289,12 +290,45 @@ public class MainActivity extends Activity implements
         GL_HISTORY_LOGS = textViewLog.getText() == null ? "" : textViewLog.getText().toString();
     }
 
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 1:
+                    //访问网络
+                    //访问一次google.如果成功，代表代理成功，如果不成功，就换一次地址。
+                    //Q:是否需要开启一个子线程呢？
+
+                    testNetProxyWork();
+                    break;
+                default:
+                    onLogReceived("NO DATA handle");
+                    break;
+            }
+        }
+    };
+
     @Override
     public void onStatusChanged(String status, Boolean isRunning) {
         switchProxy.setEnabled(true);
         switchProxy.setChecked(isRunning);
         onLogReceived(status);
         Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+        if(status.contains("已连接")){
+            handler.sendEmptyMessageDelayed(1,3000);
+        }else{
+            handler.sendEmptyMessageDelayed(0,1000);
+        }
+
+
+    }
+
+    private boolean global_flag=false;
+    private void testNetProxyWork(){
+//        global_flag=true;
+        onLogReceived("请等待...翻墙中...");
+//        createNETRequest("http://www.google.com");
+        testNetWork("http://www.google.com");
     }
 
     @Override
@@ -425,6 +459,7 @@ public class MainActivity extends Activity implements
                 return true;
             case R.id.menu_item_refresh:
                 request_count_failed=0;
+//                global_flag=false;
                 String url= MsgConstant.URL1 + System.currentTimeMillis();
                 createNETRequest(url);
                 return true;
@@ -464,6 +499,41 @@ public class MainActivity extends Activity implements
 
     //请求循环次数
     private int request_count_failed=0;
+
+    /**
+     * 测试网络是否通畅
+     * @param url
+     */
+    private void testNetWork(String url){
+        Request request = new Request.Builder().url(url).build();
+        NetUtils.enqueue(request, new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            onLogReceived("换个IP吧兄弟~~~~");
+                        }
+                    });
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    final String responseUrl = response.body().string();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!TextUtils.isEmpty(responseUrl)){
+                                    onLogReceived("可以翻墙啦~~~~");
+                                }
+                            }
+                        });
+                }
+            }
+        });
+    }
+
     /**
      * 发起网络请求操作
      */
@@ -475,7 +545,17 @@ public class MainActivity extends Activity implements
         NetUtils.enqueue(request, new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
-                Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
+ /*               if(global_flag){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            onLogReceived("换个IP吧兄弟~~~~");
+                        }
+                    });
+                    return;
+                }
+                */
                 if (e.getCause().equals(SocketTimeoutException.class)){
                    if( request_count_failed>5){
                        return; //停止网络请求
@@ -492,10 +572,25 @@ public class MainActivity extends Activity implements
             public void onResponse(Response response) throws IOException {
                 if (response.isSuccessful()) {
                     final String responseUrl = response.body().string();
+                /*
+                    if(global_flag){
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!TextUtils.isEmpty(responseUrl)){
+                                    onLogReceived("可以翻墙啦~~~~");
+                                }
+
+
+                            }
+                        });
+                        return;
+                    }
+                  */
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            onLogReceived(responseUrl);
+                            onLogReceived("地址源已刷新");
                         }
                     });
 
