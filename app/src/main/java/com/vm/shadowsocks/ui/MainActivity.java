@@ -313,8 +313,9 @@ public class MainActivity extends Activity implements
         switchProxy.setEnabled(true);
         switchProxy.setChecked(isRunning);
         onLogReceived(status);
-        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
         if(status.contains("已连接")){
+            Toast.makeText(this, "正测试网络是否畅通,请稍候", Toast.LENGTH_SHORT).show();
             handler.sendEmptyMessageDelayed(1,3000);
         }else{
             handler.sendEmptyMessageDelayed(0,1000);
