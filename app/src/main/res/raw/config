@@ -1,5 +1,5 @@
 session_name shadowsocks
-    welcome_info 欢迎使用shadowsocks!
+    welcome_info 欢迎使用ss!
     ip 172.25.0.1
     dns 223.5.5.5
     dns 223.6.6.6

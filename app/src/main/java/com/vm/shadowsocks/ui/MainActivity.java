@@ -211,7 +211,7 @@ public class MainActivity extends Activity implements
                 Toast.makeText(this, "请先获取IP", Toast.LENGTH_SHORT).show();
             }else{
                 VpnInfoBean vpnb = getRandom();
-                while (vpnb.getPassword().contains("@")) {
+                while (vpnb.getPassword().contains("@") || vpnb.getPassword().contains("?")) {
                     vpnb = getRandom();
                 }
                 String show="Account:"+vpnb.getIpadd()+",\n密码:"+vpnb.getPassword()+",端口:"+vpnb.getPort()+",\n加密方式:"+vpnb.getSalt_pwd_type()+",国家地区:"+vpnb.getLocation()+",\n连接健康度:"+vpnb.getHealthe()+",时间:"+vpnb.getCurrt_time();
@@ -280,7 +280,7 @@ public class MainActivity extends Activity implements
                 mCalendar.get(Calendar.SECOND),
                 logString);
 
-        System.out.println(logString);
+//        System.out.println(logString);
 
         if (textViewLog.getLineCount() > 200) {
             textViewLog.setText("");
@@ -336,15 +336,26 @@ public class MainActivity extends Activity implements
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (LocalVpnService.IsRunning != isChecked) {
             switchProxy.setEnabled(false);
-            if (isChecked) {
-                Intent intent = LocalVpnService.prepare(this);
-                if (intent == null) {
-                    startVPNService();
+            //第一次启动时，如果如果用户还未获取数据源，那么就不能开启这个switch按钮。因为这样会造成崩溃
+            if(TextUtils.isEmpty(readProxyUrl())){
+                Toast.makeText(getApplicationContext(), "请注意控制台的信息", Toast.LENGTH_SHORT).show();
+                onLogReceived("请先点击右上角，然后刷新地址源信息。然后点击获取到地址一栏。再来开启本开关！！！");
+//                switchProxy.setChecked(false);
+//                return;
+                switchProxy.setEnabled(true);
+                switchProxy.setChecked(false);
+            }else{
+//                switchProxy.setChecked(true);
+                if (isChecked) {
+                    Intent intent = LocalVpnService.prepare(this);
+                    if (intent == null) {
+                        startVPNService();
+                    } else {
+                        startActivityForResult(intent, START_VPN_SERVICE_REQUEST_CODE);
+                    }
                 } else {
-                    startActivityForResult(intent, START_VPN_SERVICE_REQUEST_CODE);
+                    LocalVpnService.IsRunning = false;
                 }
-            } else {
-                LocalVpnService.IsRunning = false;
             }
         }
     }
@@ -546,17 +557,6 @@ public class MainActivity extends Activity implements
         NetUtils.enqueue(request, new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
-//                Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
- /*               if(global_flag){
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            onLogReceived("换个IP吧兄弟~~~~");
-                        }
-                    });
-                    return;
-                }
-                */
                 if (e.getCause().equals(SocketTimeoutException.class)){
                    if( request_count_failed>5){
                        return; //停止网络请求
@@ -573,21 +573,6 @@ public class MainActivity extends Activity implements
             public void onResponse(Response response) throws IOException {
                 if (response.isSuccessful()) {
                     final String responseUrl = response.body().string();
-                /*
-                    if(global_flag){
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!TextUtils.isEmpty(responseUrl)){
-                                    onLogReceived("可以翻墙啦~~~~");
-                                }
-
-
-                            }
-                        });
-                        return;
-                    }
-                  */
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
