@@ -24,6 +24,13 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/config_shuoming2"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="激活码:"
             android:gravity="left"
             android:textSize="15sp"
