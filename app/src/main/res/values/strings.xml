@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ss</string>
+    <string name="app_name_splash">Active</string>
     <string name="menu_item_toggle_global">Toggle global mode</string>
     <string name="menu_item_switch">Proxy</string>
     <string name="menu_item_about">About</string>
@@ -24,4 +25,15 @@
     <string name="config_url_hint">ss://method:password@host:port</string>
     <string name="refresh_btn">refresh IP datasheet</string>
     <string name="config_url_get">show the IP info</string>
+    <string name="title_activity_splash_manager">SS激活</string>
+    <string name="config_shuoming">
+        不限时间，不限流量，不限平台的代理工具。android,windows，mac都可。请仔细阅读使用说明书。\n
+        本应用售卖方式为30元一年。如果国家不查封，我们会一直做下去。而且版本会不断更新。\n
+        请亲们支持作者创作。谢谢。\n
+        您的一顿饭钱，可以享受到一个网络自由的世界。尤其对于开发者们而言，这时巨大的福音。诸多开发工具都需要连接外国网站才能获取更新包。本App提供了十分丰富的境外IP。
+        需要的朋友们，请加微信号索要激活码和压缩包的密码。如果处于观望状态，还请不要叨扰。谢谢。不要讲价，讲价我也不会降。一顿饭钱都舍不得，不要来找我。\n
+        如果您的安卓手机用不了，我们全额退款。
+    </string>
+    <string name="config_shuoming2">微信号:taoquan911</string>
+    <string name="config_active">激活</string>
 </resources>
