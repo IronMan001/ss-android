@@ -36,4 +36,8 @@
     </string>
     <string name="config_shuoming2">微信号:taoquan911</string>
     <string name="config_active">激活</string>
+
+    <string name="title_activity_image">ImageActivity</string>
+    <string name="donate">donate</string>
+
 </resources>

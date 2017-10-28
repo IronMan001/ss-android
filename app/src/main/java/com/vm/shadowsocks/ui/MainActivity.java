@@ -3,12 +3,16 @@ package com.vm.shadowsocks.ui;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -46,8 +51,11 @@ import com.vm.shadowsocks.core.ProxyConfig;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
+import android.content.ContentResolver;
+import android.provider.MediaStore;
 
 public class MainActivity extends Activity implements
         View.OnClickListener,
@@ -440,7 +448,7 @@ public class MainActivity extends Activity implements
                         .setNegativeButton(R.string.btn_more, new OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IronMan001/ss-android")));
+                                 startActivity(new Intent(getApplicationContext(),ImageActivity.class));
                             }
                         })
                         .show();
@@ -486,6 +494,38 @@ public class MainActivity extends Activity implements
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    /**
+     * Try to return the absolute file path from the given Uri
+     *
+     * @param context
+     * @param uri
+     * @return the file path or null
+     */
+    public static String getRealFilePath(final Context context, final Uri uri ) {
+        if ( null == uri ) return null;
+        final String scheme = uri.getScheme();
+        String data = null;
+        if ( scheme == null )
+            data = uri.getPath();
+        else if ( ContentResolver.SCHEME_FILE.equals( scheme ) ) {
+            data = uri.getPath();
+        } else if ( ContentResolver.SCHEME_CONTENT.equals( scheme ) ) {
+            Cursor cursor = context.getContentResolver().query( uri, new String[] { MediaStore.Images.ImageColumns.DATA }, null, null, null );
+            if ( null != cursor ) {
+                if ( cursor.moveToFirst() ) {
+                    int index = cursor.getColumnIndex( MediaStore.Images.ImageColumns.DATA );
+                    if ( index > -1 ) {
+                        data = cursor.getString( index );
+                    }
+                }
+                cursor.close();
+            }
+        }
+        return data;
+    }
+
+
 
     @Override
     protected void onResume() {
