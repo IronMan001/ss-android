@@ -7,6 +7,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
@@ -24,8 +25,12 @@ public class SplashManager extends Activity implements View.OnClickListener{
         et_activie  =(EditText)findViewById(R.id.et_active);
         findViewById(R.id.btn_active).setOnClickListener(this);
         String code=readCode();
+        long timestamp=readCodeTimeStamp();
         if(!TextUtils.isEmpty(code)){
-            startActivityForResult(new Intent(SplashManager.this,MainActivity.class),0);
+            if(SystemClock.currentThreadTimeMillis()<timestamp)
+                startActivityForResult(new Intent(SplashManager.this,MainActivity.class),0);
+            else
+                Toast.makeText(getApplicationContext(),"激活码已过期",Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -87,13 +92,25 @@ public class SplashManager extends Activity implements View.OnClickListener{
         return preferences.getString(CONFIG_ACTIVECODE, "");
     }
 
+    /**
+     * code有效期
+     * @return
+     */
+    Long readCodeTimeStamp() {
+        SharedPreferences preferences = getSharedPreferences("shadowsocksProxyUrl", MODE_PRIVATE);
+        return preferences.getLong(CONFIG_ACTIVECODE_TIMESTAMP, 0);
+    }
+
     void setCode(String code) {
         SharedPreferences preferences = getSharedPreferences("shadowsocksProxyUrl", MODE_PRIVATE);
         Editor editor = preferences.edit();
         editor.putString(CONFIG_ACTIVECODE, code);
+        long year=1000*3600*24*365;
+        editor.putLong(CONFIG_ACTIVECODE_TIMESTAMP, SystemClock.currentThreadTimeMillis()+year);
         editor.apply();
     }
     private static final String CONFIG_ACTIVECODE = "CONFIG_ACTIVECODE";
+    private static final String CONFIG_ACTIVECODE_TIMESTAMP = "CONFIG_ACTIVECODE_TIMESTAMP";
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
